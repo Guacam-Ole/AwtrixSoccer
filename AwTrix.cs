@@ -284,4 +284,11 @@ public class AwTrix
         var response = await myHttpClient.PostAsync(url, new StringContent(json, Encoding.UTF8));
         PreviousPayLoad = json;
     }
+
+    public async Task ChangeDelay(int newDelay)
+    {
+        var url = GetUrl("/api/settings");
+        var httpClient = new HttpClient();
+        await httpClient.PostAsync(url, new StringContent("{'ATIME':newDelay}"));
+    }
 }

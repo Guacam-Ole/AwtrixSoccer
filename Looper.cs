@@ -24,6 +24,12 @@ public class Looper
     public async Task Loop()
     {
         await _awTrix.DeleteApps(null);
+        if (_config.Uninstall)
+        {
+            await _awTrix.ChangeDelay(_config.DisplayDelayWhenOff);
+            _logger.LogInformation("SorrerUlanzi is now Uninstalled from device");
+            return;
+        }
         while (true)
         {
             foreach (var teamId in _config.TeamIds)
