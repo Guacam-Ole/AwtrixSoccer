@@ -109,3 +109,46 @@ During overtime periods (e.g., cup games), the progress bar becomes red to indic
 ![Match Finished](./doc/finished.png)
 
 After the final whistle, the progress bar disappears, showing only the final score and team logos.
+
+## Installation & Usage
+
+### Running with Docker
+
+1. **Build the Docker image:**
+   ```bash
+   docker build -t soccer-ulanzi .
+   ```
+
+2. **Run the container:**
+   ```bash
+   docker run -v $(pwd)/config.json:/app/config.json -v $(pwd)/cache:/app/cache soccer-ulanzi
+   ```
+
+   This command:
+   - Mounts your local `config.json` file into the container
+   - Mounts the local `cache` directory for logo storage
+   - Starts the application
+
+3. **Run in the background:**
+   ```bash
+   docker run -d --name soccer-ulanzi -v $(pwd)/config.json:/app/config.json -v $(pwd)/cache:/app/cache soccer-ulanzi
+   ```
+
+### Running with .NET
+
+If you have .NET 9.0 installed locally:
+
+1. **Restore dependencies:**
+   ```bash
+   dotnet restore
+   ```
+
+2. **Run the application:**
+   ```bash
+   dotnet run
+   ```
+
+### Prerequisites
+
+- Ensure your `config.json` file is properly configured with your team IDs and device IP
+- Make sure your Ulanzi device is accessible on the network
