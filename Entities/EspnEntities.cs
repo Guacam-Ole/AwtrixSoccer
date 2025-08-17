@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
+
+// ReSharper disable All
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
 namespace SoccerUlanzi.Entities.Espn;
 
@@ -10,8 +12,7 @@ public class Event
     public required string Name { get; set; }
     public List<Competition> Competitions { get; set; }
     public List<Link> Links { get; set; }
-    [JsonIgnore]
-    public AwTrix.GamesStates GameState { get; set; }
+    [JsonIgnore] public AwTrix.GamesStates GameState { get; set; }
 }
 
 public class Competition
@@ -31,9 +32,8 @@ public class EventStatusType
 
 public class EventStatus
 {
-    [JsonPropertyName("type")] 
-    public EventStatusType StatusType { get; set; }
-    
+    [JsonPropertyName("type")] public EventStatusType StatusType { get; set; }
+
     public string DisplayClock { get; set; }
 
     public int Minutes
@@ -42,7 +42,6 @@ public class EventStatus
         {
             if (DisplayClock == null) return 0;
             var parts = DisplayClock.Split("'");
-            //var numbersOnly = Regex.Replace(DisplayClock, @"[^0-9]", "");
             return int.TryParse(parts[0], out var minutes) ? minutes : 0;
         }
     }
@@ -52,10 +51,8 @@ public class Competitor
 {
     public Team Team { get; set; }
     public string HomeAway { get; set; }
-    public bool IsHome
-    {
-        get { return HomeAway == "home"; }
-    }
+
+    public bool IsHome => HomeAway == "home";
 }
 
 public class Team
@@ -76,8 +73,6 @@ public class Team
 public class Logo
 {
     public required string Href { get; set; }
-    public required int Width { get; set; }
-    public required int Height { get; set; }
 }
 
 public class Link

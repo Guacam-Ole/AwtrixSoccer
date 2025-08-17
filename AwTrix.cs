@@ -1,13 +1,8 @@
 using System.Numerics;
-using System.Reflection.Metadata;
-using System.Runtime.InteropServices.JavaScript;
-using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using PngToJsonConverter;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace SoccerUlanzi;
 
@@ -16,37 +11,40 @@ using SixLabors.ImageSharp.PixelFormats;
 
 public class Team
 {
-    public string IconPath { get; set; }
-    public int Goals { get; set; }
-    public string? IconUrl { get; set; }
+    public string? IconPath { get; init; }
+    public int Goals { get; init; }
+    public string? IconUrl { get; init; }
     public int[]? ImageContents { get; set; }
 }
 
 public class AwTrix
 {
-    private static string PreviousPayLoad = null;
+    private static string? _previousPayLoad;
     private readonly Config _config;
     private readonly ILogger<AwTrix> _logger;
+    private readonly Rest _rest;
 
-    private JsonSerializerOptions _serializerOptions = new()
+    private readonly JsonSerializerOptions _serializerOptions = new()
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public const string AppUrl = "/api/custom?name=soccer";
-    public const string NotifyUrl = "/api/notify";
+    private const string AppUrl = "/api/custom?name=soccer";
+    private const string NotifyUrl = "/api/notify";
 
 
-    public AwTrix(Config config, ILogger<AwTrix> logger)
+    public AwTrix(Config config, ILogger<AwTrix> logger, Rest rest)
     {
         _config = config;
         _logger = logger;
+        _rest = rest;
     }
 
     private async Task AddByteArrayToTeam(Team team, int size)
     {
-        if (!File.Exists(team.IconPath))
+        if (team.IconPath == null) return;
+        if (!File.Exists(team.IconPath) && team.IconUrl != null)
         {
             if (!await DownloadAndResizeIcon(team.IconUrl, team.IconPath, size)) return;
         }
@@ -54,7 +52,7 @@ public class AwTrix
         team.ImageContents = ConvertPngToByteArray(team.IconPath, size);
     }
 
-    public async Task ShowPreview24h(Team home, Team guest, DateTime time, string teamId)
+    public async Task ShowPreview(Team home, Team guest, DateTime time, string teamId)
     {
         await AddByteArrayToTeam(home, 6);
         await AddByteArrayToTeam(guest, 6);
@@ -74,8 +72,7 @@ public class AwTrix
     public async Task DeleteApps(string? teamId)
     {
         var url = GetUrl(AppUrl, teamId);
-        var myHttpClient = new HttpClient();
-        await myHttpClient.PostAsync(url, new StringContent("", Encoding.UTF8));
+         await _rest.Post(url, string.Empty);
         _logger.LogInformation("App for '{App}' removed", teamId);
     }
 
@@ -177,41 +174,40 @@ public class AwTrix
     private async Task<bool> DownloadAndResizeIcon(string url, string filename, int width = 8, int height = 8)
     {
         if (string.IsNullOrEmpty(url)) return false;
-        using var httpClient = new HttpClient();
-        var response = await httpClient.GetAsync(url);
-        if (!response.IsSuccessStatusCode)
+        var response = await _rest.Get(url);
+        
+        if (response==null)
         {
-            Console.WriteLine($"Failed to download image. Status: {response.StatusCode}");
+            _logger.LogWarning("Failed to download image.");
             return false;
         }
+        
 
         var stream = await response.Content.ReadAsStreamAsync();
         using var image = await Image.LoadAsync(stream);
-        var r = RemoveTransparent(image);
+        RemoveTransparent(image);
         image.Mutate(x => x.Resize(width, height));
 
-        // Save as PNG
         await image.SaveAsync(filename, new PngEncoder());
         return true;
     }
 
-    private Image RemoveTransparent(Image image)
+    private static void RemoveTransparent(Image image)
     {
         image.Mutate(x => x.ProcessPixelRowsAsVector4(row =>
         {
-            for (int i = 0; i < row.Length; i++)
+            for (var i = 0; i < row.Length; i++)
             {
                 ref var pixel = ref row[i];
-                if (pixel.W <= 0.25f) // W is alpha, 0 = transparent
+                if (pixel.W <= 0.25f) 
                 {
-                    pixel = new Vector4(0, 0, 0, 1); // Black
+                    pixel = new Vector4(0, 0, 0, 1); 
                 }
             }
         }));
-        return image;
     }
 
-    private int[] ConvertPngToByteArray(string imagePath, int size = 8)
+    private static int[] ConvertPngToByteArray(string imagePath, int size = 8)
     {
         using var image = Image.Load<Rgba32>(imagePath);
         image.Mutate(x => x.Resize(size, size));
@@ -223,8 +219,6 @@ public class AwTrix
             for (var x = 0; x < size; x++)
             {
                 var pixel = image[x, y];
-                // Convert RGBA to integer (RGB format, ignoring alpha)
-
                 var colorValue = (pixel.R << 16) | (pixel.G << 8) | pixel.B;
                 pixelArray[y * size + x] = colorValue;
             }
@@ -243,47 +237,32 @@ public class AwTrix
         return $"http://{_config.DeviceIp}{target}{suffix}";
     }
 
-    private async Task RemoveApp()
-    {
-        var url = GetUrl(AppUrl);
-        await SendGetRequest(url);
-    }
 
-    private static async Task SendGetRequest(string url)
-    {
-        var myHttpClient = new HttpClient();
-        await myHttpClient.GetAsync(url);
-    }
 
     private async Task DismissNotification()
     {
         var url = GetUrl(NotifyUrl, "/dismiss");
-        await SendGetRequest(url);
+        await _rest.Get(url);
     }
-
 
 
     private async Task SwitchApp(string gameId)
     {
         var url = GetUrl("/api/switch");
-        var myHttpClient = new HttpClient();
-        var response =
-            await myHttpClient.PostAsync(url, new StringContent("{ 'name':'soccer" + gameId + "'}", Encoding.UTF8));
+        await _rest.Post(url, "{ 'name':'soccer" + gameId + "'}");
     }
 
     private async Task SendApp(string json, string gameId)
     {
-        if (json == PreviousPayLoad) return;
+        if (json == _previousPayLoad) return;
         var url = GetUrl(AppUrl, gameId);
-        var myHttpClient = new HttpClient();
-        var response = await myHttpClient.PostAsync(url, new StringContent(json, Encoding.UTF8));
-        PreviousPayLoad = json;
+        await _rest.Post(url, json);
+        _previousPayLoad = json;
     }
 
     public async Task ChangeDelay(int newDelay)
     {
         var url = GetUrl("/api/settings");
-        var httpClient = new HttpClient();
-        await httpClient.PostAsync(url, new StringContent("{'ATIME':newDelay}"));
+        await _rest.Post(url, "{'ATIME' : " + newDelay + "}");
     }
 }

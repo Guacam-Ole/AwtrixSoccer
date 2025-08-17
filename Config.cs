@@ -1,9 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace SoccerUlanzi;
 
+[SuppressMessage("ReSharper", "PropertyCanBeMadeInitOnly.Global")]
 public class Config
 {
-    public List<string> TeamIds { get; set; } 
-    public string DeviceIp { get; set; } 
+    public List<string> TeamIds { get; set; } = [];
+    public required string DeviceIp { get; set; } 
     public bool DemoMode { get; set; }
     public bool Uninstall { get; set; }
     public int DisplayDelayOnGames { get; set; } = 40;

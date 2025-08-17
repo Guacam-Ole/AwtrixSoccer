@@ -7,34 +7,35 @@ namespace SoccerUlanzi;
 
 public class Espn
 {
+    private const string ScoreTag = "Gamestrip__Score";
     private readonly ILogger<Espn> _logger;
     private readonly Config _config;
     private readonly AwTrix _awTrix;
+    private readonly Rest _rest;
 
-    private static Dictionary<string, List<Timing>> _timings = [];
-    public Dictionary<string, Event> NextGames { get; set; } = new();
-    public Dictionary<string, Event> RunningGames { get; set; } = new();
-    public Dictionary<string, Event> FinishedGames { get; set; } = new();
+    private static readonly Dictionary<string, List<Timing>> Timings = [];
+    private Dictionary<string, Event> NextGames { get; set; } = new();
+    private Dictionary<string, Event> RunningGames { get; set; } = new();
+    private Dictionary<string, Event> FinishedGames { get; set; } = new();
 
 
-    public Espn(ILogger<Espn> logger, Config config, AwTrix awTrix)
+    public Espn(ILogger<Espn> logger, Config config, AwTrix awTrix, Rest rest)
     {
         _logger = logger;
         _config = config;
         _awTrix = awTrix;
+        _rest = rest;
     }
 
-    private const string ScoreTag = "Gamestrip__Score";
 
-    private JsonSerializerOptions _serializerOptions = new()
+    private readonly JsonSerializerOptions _serializerOptions = new()
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,
         ReadCommentHandling = JsonCommentHandling.Skip,
     };
-    
-    
+
 
     public bool AnyActiveGame()
     {
@@ -54,8 +55,8 @@ public class Espn
 
     public async Task GetGamesFor(string teamId)
     {
-        if (!_timings.ContainsKey(teamId)) _timings.Add(teamId, []);
-        var teamTimings = _timings[teamId];
+        if (!Timings.ContainsKey(teamId)) Timings.Add(teamId, []);
+        var teamTimings = Timings[teamId];
 
         foreach (var url in _config.LeagueUrls)
         {
@@ -103,13 +104,6 @@ public class Espn
         AnalyzeFixtures(teamId);
     }
 
-    // TODO: Remove once it is running smoothly
-    private void OutPutGames(List<Event> games, string listType)
-    {
-        Console.WriteLine(listType);
-        Console.WriteLine(JsonSerializer.Serialize(games));
-    }
-
     private void AnalyzeFixtures(string teamId)
     {
         if (RunningGames.TryGetValue(teamId, out var runningGame))
@@ -121,7 +115,7 @@ public class Espn
             }
         }
 
-        if (!_timings.TryGetValue(teamId, out var teamTiming)) return;
+        if (!Timings.TryGetValue(teamId, out var teamTiming)) return;
         FinishedGames.TryGetValue(teamId, out var finishedGame);
         NextGames.TryGetValue(teamId, out var nextGame);
 
@@ -198,9 +192,9 @@ public class Espn
         timing.NextCheck = DateTime.Now.AddSeconds(4);
     }
 
-    public async Task ShowCurrentGame(Event game, string teamId)
+    private async Task ShowCurrentGame(Event game, string teamId)
     {
-        _timings.TryGetValue(teamId, out var teamTimings);
+        Timings.TryGetValue(teamId, out var teamTimings);
         var timing = teamTimings?.FirstOrDefault(q => q.Game == game);
         if (timing == null) return;
 
@@ -255,7 +249,7 @@ public class Espn
             IconUrl = guestCompetitor.Team.Logos?.FirstOrDefault()?.Href,
             IconPath = $"./cache/{guestCompetitor.Team.Id}.6x6.png"
         };
-        await _awTrix.ShowPreview24h(home, guest, game.MatchDate.Value, teamId);
+        await _awTrix.ShowPreview(home, guest, game.MatchDate.Value, teamId);
     }
 
     public async Task DisplayNextOrCurrentGame(string teamId)
@@ -299,46 +293,38 @@ public class Espn
 
     private async Task<Entities.Espn.Team?> GetNextGame(string url)
     {
-        try
+        var response = await _rest.GetString(url);
+        if (response == null)
         {
-            using var httpClient = new HttpClient();
-            var response = await httpClient.GetStringAsync(url);
-            var teamWrapper = JsonSerializer.Deserialize<TeamWrapper>(response, _serializerOptions);
-            return teamWrapper?.Team;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Cannot retrieve team fixtures from '{url}'. Will just ignore that", url);
+            _logger.LogError("Cannot retrieve team fixtures from '{url}'. Will just ignore that", url);
             return null;
         }
+
+        var teamWrapper = JsonSerializer.Deserialize<TeamWrapper>(response, _serializerOptions);
+        return teamWrapper?.Team;
     }
 
-
-    public static async Task<(int?, int?)> GetScoresFromUrl(string url)
+    private async Task<(int?, int?)> GetScoresFromUrl(string url)
     {
-        try
+        var response = await _rest.Get(url);
+        if (response == null)
         {
-            using var httpClient = new HttpClient();
-            var response = await httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-            var html = await response.Content.ReadAsStringAsync();
-            var doc = new HtmlDocument();
-            doc.LoadHtml(html);
-            var nodes = doc.DocumentNode.SelectNodes($"//div[contains(@class, '{ScoreTag}')]");
-            if (nodes.Count <= 1) return (null, null);
-            var home = nodes[0].FirstChild.InnerText;
-            var guest = nodes.Last().FirstChild.InnerText;
-            if (int.TryParse(home, out var homeScore) && int.TryParse(guest, out var guestScore))
-            {
-                return (homeScore, guestScore);
-            }
+            _logger.LogError("Cannot get scores on '{Url}'", url);
+            return (null, null);
+        }
 
-            return (null, null);
-        }
-        catch (Exception e)
+        var html = await response.Content.ReadAsStringAsync();
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+        var nodes = doc.DocumentNode.SelectNodes($"//div[contains(@class, '{ScoreTag}')]");
+        if (nodes.Count <= 1) return (null, null);
+        var home = nodes[0].FirstChild.InnerText;
+        var guest = nodes.Last().FirstChild.InnerText;
+        if (int.TryParse(home, out var homeScore) && int.TryParse(guest, out var guestScore))
         {
-            Console.WriteLine(e);
-            return (null, null);
+            return (homeScore, guestScore);
         }
+
+        return (null, null);
     }
 }
