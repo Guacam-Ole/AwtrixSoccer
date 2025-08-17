@@ -266,6 +266,7 @@ public class Espn
 
         if (finishedGame?.MatchDate != null && finishedGame.MatchDate.Value.ToLocalTime() < DateTime.Now.AddHours(-12))
         {
+            finishedGame = null;
             FinishedGames.Remove(teamId);
         }
 

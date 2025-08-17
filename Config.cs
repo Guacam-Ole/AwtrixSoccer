@@ -2,14 +2,14 @@ namespace SoccerUlanzi;
 
 public class Config
 {
-    public List<string> TeamIds { get; set; } = ["270", "137", "127"]; // St. Pauli, Werder Bremen, Mordor
-    public string DeviceIp { get; set; } = "192.168.178.10";
-    public bool DemoMode { get; set; } = true;
-    public bool Uninstall { get; set; } = false;
+    public List<string> TeamIds { get; set; } 
+    public string DeviceIp { get; set; } 
+    public bool DemoMode { get; set; }
+    public bool Uninstall { get; set; }
     public int DisplayDelayOnGames { get; set; } = 40;
     public int DisplayDelayWhenOff { get; set; } = 7;
-    public TimeSpan DelayOnActiveGames { get; set; } = new TimeSpan(0, 0, 10);
-    public TimeSpan DelayWhenIdle { get; set; } = new TimeSpan(0, 15, 0);
+    public TimeSpan DelayOnActiveGames { get; set; } = new(0, 0, 10);
+    public TimeSpan DelayWhenIdle { get; set; } = new(0, 15, 0);
 
     public string[] LeagueUrls { get; set; } =
     [
