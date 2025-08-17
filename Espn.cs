@@ -33,6 +33,24 @@ public class Espn
         PropertyNameCaseInsensitive = true,
         ReadCommentHandling = JsonCommentHandling.Skip,
     };
+    
+    
+
+    public bool AnyActiveGame()
+    {
+        if (RunningGames.Count > 0) return true;
+        return NextGames.Values.Any(q => q.MatchDate.IsWithinNext(_config.DelayWhenIdle));
+    }
+
+    public bool AnyUpcomingGame()
+    {
+        return NextGames.Values.Any(q => q.MatchDate.IsWithinNextHours(24));
+    }
+
+    public bool AnyRecentGame()
+    {
+        return FinishedGames.Values.Any(q => q.MatchDate.IsWithinPreviusHours(8));
+    }
 
     public async Task GetGamesFor(string teamId)
     {
@@ -56,6 +74,7 @@ public class Espn
                 existingTiming = teamTimings.First(q => q.Url == url);
             }
 
+            existingTiming.LastChecked = DateTime.Now;
             var teamGames = await GetNextGame($"{url}/teams/{teamId}");
             if (teamGames == null)
             {
@@ -145,7 +164,7 @@ public class Espn
                     UpdateRunningGame(timing, teamId);
                     break;
                 case "STATUS_OVERTIME":
-                    case "STATUS_SHOOTOUT":
+                case "STATUS_SHOOTOUT":
                     timing.Game.GameState = AwTrix.GamesStates.OverTime;
                     UpdateRunningGame(timing, teamId);
                     break;
@@ -153,7 +172,7 @@ public class Espn
                 case "STATUS_HALFTIME":
                 case "STATUS_END_OF_REGULATION":
                 case "STATUS_HALFTIME_ET":
-                   case "STATUS_END_OF_EXTRATIME":
+                case "STATUS_END_OF_EXTRATIME":
                     timing.Game.GameState = AwTrix.GamesStates.Pause;
                     UpdateRunningGame(timing, teamId);
                     break;
@@ -179,7 +198,7 @@ public class Espn
         timing.NextCheck = DateTime.Now.AddSeconds(4);
     }
 
-    private async Task ShowCurrentGame(Event game, string teamId)
+    public async Task ShowCurrentGame(Event game, string teamId)
     {
         _timings.TryGetValue(teamId, out var teamTimings);
         var timing = teamTimings?.FirstOrDefault(q => q.Game == game);
@@ -250,7 +269,6 @@ public class Espn
             FinishedGames.Remove(teamId);
         }
 
-        
 
         if (runningGame != null)
         {
@@ -258,6 +276,7 @@ public class Espn
             {
                 RunningGames.Remove(teamId);
             }
+
             await ShowCurrentGame(runningGame, teamId);
         }
         else if (finishedGame != null)

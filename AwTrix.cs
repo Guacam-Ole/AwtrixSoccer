@@ -261,12 +261,7 @@ public class AwTrix
         await SendGetRequest(url);
     }
 
-    private async Task SendNotification(string json)
-    {
-        var url = GetUrl(NotifyUrl);
-        var myHttpClient = new HttpClient();
-        var response = await myHttpClient.PostAsync(url, new StringContent(json, Encoding.UTF8));
-    }
+
 
     private async Task SwitchApp(string gameId)
     {

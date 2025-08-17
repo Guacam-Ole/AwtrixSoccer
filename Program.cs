@@ -36,7 +36,7 @@ namespace PngToJsonConverter
                 builder.SetMinimumLevel(LogLevel.Information);
             });
 
-            services.AddSingleton<Config>();
+            services.AddSingleton<Config>(JsonSerializer.Deserialize<Config>(File.ReadAllText("config.json"))??throw new Exception("Config is missing"));
             services.AddScoped<AwTrix>();
             services.AddScoped<Espn>();
             services.AddScoped<Looper>();
