@@ -19,7 +19,7 @@ public class Team
 
 public class AwTrix
 {
-    private static string? _previousPayLoad;
+    private static readonly Dictionary<string, string> PreviousPayLoads = new();
     private readonly Config _config;
     private readonly ILogger<AwTrix> _logger;
     private readonly Rest _rest;
@@ -72,7 +72,7 @@ public class AwTrix
     public async Task DeleteApps(string? teamId)
     {
         var url = GetUrl(AppUrl, teamId);
-         await _rest.Post(url, string.Empty);
+        await _rest.Post(url, string.Empty);
         _logger.LogInformation("App for '{App}' removed", teamId);
     }
 
@@ -175,13 +175,13 @@ public class AwTrix
     {
         if (string.IsNullOrEmpty(url)) return false;
         var response = await _rest.Get(url);
-        
-        if (response==null)
+
+        if (response == null)
         {
             _logger.LogWarning("Failed to download image.");
             return false;
         }
-        
+
 
         var stream = await response.Content.ReadAsStreamAsync();
         using var image = await Image.LoadAsync(stream);
@@ -199,9 +199,9 @@ public class AwTrix
             for (var i = 0; i < row.Length; i++)
             {
                 ref var pixel = ref row[i];
-                if (pixel.W <= 0.25f) 
+                if (pixel.W <= 0.25f)
                 {
-                    pixel = new Vector4(0, 0, 0, 1); 
+                    pixel = new Vector4(0, 0, 0, 1);
                 }
             }
         }));
@@ -238,7 +238,6 @@ public class AwTrix
     }
 
 
-
     private async Task DismissNotification()
     {
         var url = GetUrl(NotifyUrl, "/dismiss");
@@ -254,10 +253,10 @@ public class AwTrix
 
     private async Task SendApp(string json, string gameId)
     {
-        if (json == _previousPayLoad) return;
+        if (PreviousPayLoads.TryGetValue(gameId, out var previousPayLoad) && json == previousPayLoad) return;
         var url = GetUrl(AppUrl, gameId);
         await _rest.Post(url, json);
-        _previousPayLoad = json;
+        PreviousPayLoads[gameId] = json;
     }
 
     public async Task ChangeDelay(int newDelay)

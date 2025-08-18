@@ -286,7 +286,7 @@ public class Espn
         }
         else
         {
-            await _awTrix.DeleteApps(teamId);
+           // await _awTrix.DeleteApps(teamId);
         }
     }
 
