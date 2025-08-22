@@ -18,14 +18,14 @@ public class Config
     [
         "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.dfb_pokal",
         "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1",
-        // "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.2",
-        // "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions",
-        // "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.europa.conf",
-        // "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.europa",
-        // "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.europa.conf_qual",
-        // "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions_qual",
-        // "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.europa_qual",
-        // "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.2.promotion.relegation",
-        // "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.playoff.relegation"
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.2",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.europa.conf",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.europa",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.europa.conf_qual",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions_qual",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.europa_qual",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.2.promotion.relegation",
+        "https://site.api.espn.com/apis/site/v2/sports/soccer/ger.playoff.relegation"
     ]; 
 }
