@@ -68,6 +68,8 @@ public class AwTrix
         await SendApp(payload, teamId);
         await SwitchApp(teamId);
     }
+    
+
 
     public async Task DeleteApps(string? teamId)
     {
@@ -149,9 +151,18 @@ public class AwTrix
                "]},\n";
     }
 
-    private string GetTimePayload(DateTime time, int x)
+    private static string GetTimePayload(DateTime time, int x)
     {
-        string payload = "{ 'dt' : [ " + x + ", 2, '" + time.ToLocalTime().ToString("HH:mm") + "', '#FFFFFF' ]}\n";
+        var payload = string.Empty;
+        if ((time.ToLocalTime()-DateTime.Now).TotalHours < 24)
+        {
+             payload += "{ 'dt' : [ " + x + ", 2, '" + time.ToLocalTime().ToString("HH:mm") + "', '#FFFFFF' ]}\n";
+        }
+        else
+        {
+            payload += "{ 'dt' : [ " + x + ", 2, '" + time.ToLocalTime().ToString("dd.MM") + "', '#FFFFFF' ]}\n";
+        }
+
         return payload;
     }
 

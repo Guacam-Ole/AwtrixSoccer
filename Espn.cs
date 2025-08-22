@@ -14,9 +14,9 @@ public class Espn
     private readonly Rest _rest;
 
     private static readonly Dictionary<string, List<Timing>> Timings = [];
-    private Dictionary<string, Event> NextGames { get; set; } = new();
-    private Dictionary<string, Event> RunningGames { get; set; } = new();
-    private Dictionary<string, Event> FinishedGames { get; set; } = new();
+    private static readonly Dictionary<string, Event> NextGames = [];
+    private static readonly Dictionary<string, Event> RunningGames = [];
+    private static readonly Dictionary<string, Event> FinishedGames = [];
 
 
     public Espn(ILogger<Espn> logger, Config config, AwTrix awTrix, Rest rest)
@@ -123,7 +123,7 @@ public class Espn
         {
             var nextCompetition = timing.Game!.Competitions.FirstOrDefault();
             if (nextCompetition == null) continue;
-            if (nextCompetition.MatchDate > DateTime.Now.AddDays(1)) continue;
+            if (nextCompetition.MatchDate > DateTime.Now.AddDays(7)) continue;
             if (nextCompetition.MatchDate < DateTime.Now.AddDays(-1)) continue;
             if (nextCompetition.Status.StatusType.IsCompleted)
             {
@@ -233,7 +233,7 @@ public class Espn
         NextGames.TryGetValue(teamId, out var game);
         if (game?.MatchDate == null) return;
 
-        if ((game.MatchDate.Value.ToLocalTime() - DateTime.Now.ToLocalTime()).Hours >= 24) return;
+        if ((game.MatchDate.Value.ToLocalTime() - DateTime.Now.ToLocalTime()).Days > 7) return;
 
         var competition = game.Competitions.First();
         var homeCompetitor = competition.Competitors.First(q => q.IsHome);
