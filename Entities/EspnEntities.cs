@@ -79,6 +79,7 @@ public class Link
 {
     public string Text { get; set; }
     public string Href { get; set; }
+    public List<string> Rel { get; set; }
 }
 
 public class TeamWrapper

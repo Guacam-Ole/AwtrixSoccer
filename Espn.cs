@@ -170,6 +170,11 @@ public class Espn
                     timing.Game.GameState = AwTrix.GamesStates.Pause;
                     UpdateRunningGame(timing, teamId);
                     break;
+                
+                case "STATUS_FULLTIME":
+                    timing.Game.GameState = AwTrix.GamesStates.Finished;
+                    UpdateRunningGame(timing, teamId);
+                    break;
 
                 default:
                     Console.WriteLine($"HUI! Das kenn ich nich:'{nextCompetition.Status.StatusType.Name}'");
@@ -202,15 +207,25 @@ public class Espn
         var homeCompetitor = competition.Competitors.First(q => q.IsHome);
         var guestCompetitor = competition.Competitors.First(q => !q.IsHome);
 
-        var url = game.Links.FirstOrDefault(q => q.Text == "Statistics")?.Href;
+        var url = game.Links
+            .FirstOrDefault(q => q.Text == "Statistics" && q.Rel.Contains("stats") && q.Rel.Contains("desktop"))?.Href;
         if (url == null)
         {
-            _logger.LogWarning("Cannot retrieve game url");
+            try
+            {
+                var gameOutPut = JsonSerializer.Serialize(game);
+                _logger.LogWarning("Cannot retrieve game url. Links are: '{Links}'", gameOutPut);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e,"Cannot retrieve game url and also cannot serialize it.");
+            }
+            
             return;
         }
 
         var (home, guest) = await GetScoresFromUrl(url);
-        if (home == null || guest == null) return; // TODO: Error
+        if (home == null || guest == null) return;
         var homeTeam = new Team
         {
             Goals = home.Value,
@@ -286,7 +301,7 @@ public class Espn
         }
         else
         {
-           // await _awTrix.DeleteApps(teamId);
+            // await _awTrix.DeleteApps(teamId);
         }
     }
 
@@ -306,25 +321,33 @@ public class Espn
 
     private async Task<(int?, int?)> GetScoresFromUrl(string url)
     {
-        var response = await _rest.Get(url);
-        if (response == null)
+        try
         {
-            _logger.LogError("Cannot get scores on '{Url}'", url);
+            var response = await _rest.Get(url);
+            if (response == null)
+            {
+                _logger.LogError("Cannot get scores on '{Url}'", url);
+                return (null, null);
+            }
+
+            var html = await response.Content.ReadAsStringAsync();
+            var doc = new HtmlDocument();
+            doc.LoadHtml(html);
+            var nodes = doc.DocumentNode.SelectNodes($"//div[contains(@class, '{ScoreTag}')]");
+            if (nodes == null || nodes.Count <= 1) return (null, null);
+            var home = nodes[0].FirstChild.InnerText;
+            var guest = nodes.Last().FirstChild.InnerText;
+            if (int.TryParse(home, out var homeScore) && int.TryParse(guest, out var guestScore))
+            {
+                return (homeScore, guestScore);
+            }
+
             return (null, null);
         }
-
-        var html = await response.Content.ReadAsStringAsync();
-        var doc = new HtmlDocument();
-        doc.LoadHtml(html);
-        var nodes = doc.DocumentNode.SelectNodes($"//div[contains(@class, '{ScoreTag}')]");
-        if (nodes.Count <= 1) return (null, null);
-        var home = nodes[0].FirstChild.InnerText;
-        var guest = nodes.Last().FirstChild.InnerText;
-        if (int.TryParse(home, out var homeScore) && int.TryParse(guest, out var guestScore))
+        catch (Exception ex)
         {
-            return (homeScore, guestScore);
+            _logger.LogError(ex, "Cannot get scores on '{Url}", url);
+            return (null, null);
         }
-
-        return (null, null);
     }
 }
