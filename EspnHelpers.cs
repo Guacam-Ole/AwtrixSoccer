@@ -13,7 +13,7 @@ public static class EspnHelpers
     }
 
 
-    public static bool IsWithinPreviusHours(this DateTime? matchDate, int hours)
+    public static bool IsWithinPreviousHours(this DateTime? matchDate, int hours)
     {
         return matchDate != null && (DateTime.Now - matchDate.Value.ToLocalTime()).TotalHours < hours;
     }

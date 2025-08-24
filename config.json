@@ -1,5 +1,5 @@
 {
-  "TeamIds": ["270", "137", "127"],
+  "TeamIds": ["270"],
   "DeviceIp": "192.168.178.10",
   "Uninstall": false,
   "DisplayDelayOnGames": 40,

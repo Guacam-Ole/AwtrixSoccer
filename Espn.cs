@@ -50,7 +50,7 @@ public class Espn
 
     public bool AnyRecentGame()
     {
-        return FinishedGames.Values.Any(q => q.MatchDate.IsWithinPreviusHours(8));
+        return FinishedGames.Values.Any(q => q.MatchDate.IsWithinPreviousHours(8));
     }
 
     public async Task GetGamesFor(string teamId)
@@ -143,7 +143,7 @@ public class Espn
                     if (nextGame?.MatchDate == null || nextGame.MatchDate < DateTime.Now ||
                         nextGame.MatchDate > nextCompetition.MatchDate)
                     {
-                        if (nextGame != timing.Game)
+                        if (nextGame != timing.Game && timing.Game.MatchDate>DateTime.Now)
                         {
                             NextGames[teamId] = timing.Game;
                             timing.NextCheck = nextCompetition.MatchDate.ToLocalTime();
@@ -177,7 +177,7 @@ public class Espn
                     break;
 
                 default:
-                    Console.WriteLine($"HUI! Das kenn ich nich:'{nextCompetition.Status.StatusType.Name}'");
+                    _logger.LogWarning("Unknown status '{Status}'. Will ignore that", nextCompetition.Status.StatusType.Name);
                     break;
             }
         }
@@ -246,9 +246,11 @@ public class Espn
     private async Task ShowNextGame(string teamId)
     {
         NextGames.TryGetValue(teamId, out var game);
-        if (game?.MatchDate == null) return;
+        var matchDate = game?.MatchDate;
+        if (matchDate==null || game==null) return;
+        if (matchDate.Value.ToLocalTime()<DateTime.Now) return;
 
-        if ((game.MatchDate.Value.ToLocalTime() - DateTime.Now.ToLocalTime()).Days > 7) return;
+        if ((matchDate.Value.ToLocalTime() - DateTime.Now.ToLocalTime()).Days > 7) return;
 
         var competition = game.Competitions.First();
         var homeCompetitor = competition.Competitors.First(q => q.IsHome);
@@ -264,7 +266,7 @@ public class Espn
             IconUrl = guestCompetitor.Team.Logos?.FirstOrDefault()?.Href,
             IconPath = $"./cache/{guestCompetitor.Team.Id}.6x6.png"
         };
-        await _awTrix.ShowPreview(home, guest, game.MatchDate.Value, teamId);
+        await _awTrix.ShowPreview(home, guest, matchDate.Value, teamId);
     }
 
     public async Task DisplayNextOrCurrentGame(string teamId)
@@ -334,7 +336,7 @@ public class Espn
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
             var nodes = doc.DocumentNode.SelectNodes($"//div[contains(@class, '{ScoreTag}')]");
-            if (nodes == null || nodes.Count <= 1) return (null, null);
+            if (nodes.Count <= 1) return (null, null);
             var home = nodes[0].FirstChild.InnerText;
             var guest = nodes.Last().FirstChild.InnerText;
             if (int.TryParse(home, out var homeScore) && int.TryParse(guest, out var guestScore))

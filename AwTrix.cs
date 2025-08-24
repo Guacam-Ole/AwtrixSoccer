@@ -74,7 +74,7 @@ public class AwTrix
     public async Task DeleteApps(string? teamId)
     {
         var url = GetUrl(AppUrl, teamId);
-        await _rest.Post(url, string.Empty);
+        await Rest.Post(url, string.Empty);
         _logger.LogInformation("App for '{App}' removed", teamId);
     }
 
@@ -259,20 +259,20 @@ public class AwTrix
     private async Task SwitchApp(string gameId)
     {
         var url = GetUrl("/api/switch");
-        await _rest.Post(url, "{ 'name':'soccer" + gameId + "'}");
+        await Rest.Post(url, "{ 'name':'soccer" + gameId + "'}");
     }
 
     private async Task SendApp(string json, string gameId)
     {
         if (PreviousPayLoads.TryGetValue(gameId, out var previousPayLoad) && json == previousPayLoad) return;
         var url = GetUrl(AppUrl, gameId);
-        await _rest.Post(url, json);
+        await Rest.Post(url, json);
         PreviousPayLoads[gameId] = json;
     }
 
     public async Task ChangeDelay(int newDelay)
     {
         var url = GetUrl("/api/settings");
-        await _rest.Post(url, "{'ATIME' : " + newDelay + "}");
+        await Rest.Post(url, "{'ATIME' : " + newDelay + "}");
     }
 }

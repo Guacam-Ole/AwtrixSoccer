@@ -12,7 +12,7 @@ public class Rest
         _logger = logger;
     }
 
-    public async Task Post(string url, string contents)
+    public static async Task Post(string url, string contents)
     {
         using var httpClient = new HttpClient();
         await httpClient.PostAsync(url, new StringContent(contents, Encoding.UTF8));

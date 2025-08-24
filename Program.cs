@@ -5,7 +5,7 @@ using SoccerUlanzi;
 
 namespace PngToJsonConverter
 {
-    class Program
+    internal abstract class Program
     {
         private static ServiceProvider CreateServiceProvider()
         {
@@ -29,7 +29,7 @@ namespace PngToJsonConverter
         }
 
 
-        static void Main(string[] args)
+        private static void Main()
         {
             var looper = CreateServiceProvider().GetRequiredService<Looper>();
             looper.Loop().Wait();
