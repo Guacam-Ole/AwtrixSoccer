@@ -13,6 +13,7 @@ namespace PngToJsonConverter
     {
         private static ServiceProvider CreateServiceProvider()
         {
+            Console.WriteLine("Geht los!");
             var services = new ServiceCollection();
             services.AddLogging();
             services.AddSerilog(cfg =>
@@ -24,8 +25,7 @@ namespace PngToJsonConverter
                     .Enrich.WithProperty("language", Environment.GetEnvironmentVariable("LANGUAGE"))
                     .Enrich.WithProperty("lc", Environment.GetEnvironmentVariable("LC_NAME"))
                     .WriteTo.LokiHttp("http://localhost:3100");
-                if (Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyConfigurationAttribute>()?.Configuration ==
-                    "Debug")
+                // if (Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyConfigurationAttribute>()?.Configuration =="Debug")
                 {
                     cfg.WriteTo.Console(new RenderedCompactJsonFormatter());
                 }
