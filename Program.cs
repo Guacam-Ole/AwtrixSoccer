@@ -1,6 +1,8 @@
-﻿using System.Reflection;
+﻿using System.Collections;
+using System.Reflection;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
@@ -14,7 +16,7 @@ namespace PngToJsonConverter
         private static ServiceProvider CreateServiceProvider()
         {
             var services = new ServiceCollection();
-            services.AddLogging();
+            services.AddLogging(cfg => cfg.SetMinimumLevel(LogLevel.Debug));
             services.AddSerilog(cfg =>
             {
                 cfg.MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
@@ -45,6 +47,7 @@ namespace PngToJsonConverter
         private static void Main()
         {
             var looper = CreateServiceProvider().GetRequiredService<Looper>();
+
             looper.Loop().Wait();
         }
     }
