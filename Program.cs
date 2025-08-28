@@ -21,17 +21,17 @@ namespace PngToJsonConverter
                     .Enrich.FromLogContext()
                     .Enrich.WithProperty("job", Assembly.GetEntryAssembly().GetName().Name)
                     .Enrich.WithProperty("desktop", Environment.GetEnvironmentVariable("DESKTOP_SESSION"))
-                    .Enrich.WithProperty("language",Environment.GetEnvironmentVariable("LANGUAGE"))
-                    .Enrich.WithProperty("lc",Environment.GetEnvironmentVariable("LC_NAME"))
-                    .WriteTo.LokiHttp("http://thebeast:3100");
-                if (Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyConfigurationAttribute>()?.Configuration=="Debug")
+                    .Enrich.WithProperty("language", Environment.GetEnvironmentVariable("LANGUAGE"))
+                    .Enrich.WithProperty("lc", Environment.GetEnvironmentVariable("LC_NAME"))
+                    .WriteTo.LokiHttp(Environment.GetEnvironmentVariable("LOKIURL") ?? "http://thebeast:3100");
+                if (Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyConfigurationAttribute>()?.Configuration ==
+                    "Debug")
                 {
                     cfg.WriteTo.Console(new RenderedCompactJsonFormatter());
                 }
-                
             });
             services.AddSingleton(JsonSerializer.Deserialize<Config>(File.ReadAllText("config.json")) ??
-                                          throw new Exception("Config is missing"));
+                                  throw new Exception("Config is missing"));
             services.AddScoped<AwTrix>();
             services.AddScoped<Espn>();
             services.AddScoped<Looper>();
