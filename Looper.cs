@@ -36,10 +36,6 @@ public class Looper
 
     public async Task Loop()
     {
-        foreach (DictionaryEntry environmentVariable in Environment.GetEnvironmentVariables())
-        {
-            _logger.LogDebug("{Key}={Value}", environmentVariable.Key, environmentVariable.Value);
-        }
         _currentDelay = _config.DisplayDelayWhenOff;
         await _awTrix.DeleteApps(null);
         if (_config.Uninstall)

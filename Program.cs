@@ -26,6 +26,9 @@ namespace PngToJsonConverter
                     .Enrich.WithProperty("desktop", Environment.GetEnvironmentVariable("DESKTOP_SESSION"))
                     .Enrich.WithProperty("language", Environment.GetEnvironmentVariable("LANGUAGE"))
                     .Enrich.WithProperty("lc", Environment.GetEnvironmentVariable("LC_NAME"))
+                    .Enrich.WithProperty("timezone", Environment.GetEnvironmentVariable("TZ"))
+                    .Enrich.WithProperty("dotnetVersion", Environment.GetEnvironmentVariable("DOTNET_VERSION"))
+                    .Enrich.WithProperty("inContainer", Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"))
                     .WriteTo.LokiHttp(Environment.GetEnvironmentVariable("LOKIURL") ?? "http://thebeast:3100");
                 if (Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyConfigurationAttribute>()?.Configuration ==
                     "Debug")
