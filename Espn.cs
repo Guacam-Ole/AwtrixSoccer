@@ -43,16 +43,6 @@ public class Espn
         return NextGames.Values.Any(q => q.MatchDate.IsWithinNext(_config.DelayWhenIdle));
     }
 
-    public bool AnyUpcomingGame()
-    {
-        return NextGames.Values.Any(q => q.MatchDate.IsWithinNextHours(24));
-    }
-
-    public bool AnyRecentGame()
-    {
-        return FinishedGames.Values.Any(q => q.MatchDate.IsWithinPreviousHours(8));
-    }
-
     public async Task GetGamesFor(string teamId)
     {
         if (!Timings.ContainsKey(teamId)) Timings.Add(teamId, []);

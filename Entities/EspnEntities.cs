@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace SoccerUlanzi.Entities.Espn;
 
+
 public class Event
 {
     public string Id { get; set; }
@@ -13,6 +14,11 @@ public class Event
     public List<Competition> Competitions { get; set; }
     public List<Link> Links { get; set; }
     [JsonIgnore] public AwTrix.GamesStates GameState { get; set; }
+    
+    public override string ToString()
+    {
+        return $"[{Id}|{MatchDate}]";
+    }
 }
 
 public class Competition
@@ -21,6 +27,10 @@ public class Competition
     [JsonPropertyName("date")] public DateTime MatchDate { get; set; }
     public EventStatus Status { get; set; }
     public List<Competitor> Competitors { get; set; }
+    public override string ToString()
+    {
+        return $"[{Id}|{MatchDate}]";
+    }
 }
 
 public class EventStatusType
@@ -28,6 +38,10 @@ public class EventStatusType
     public string Name { get; set; }
     public string State { get; set; }
     [JsonPropertyName("completed")] public bool IsCompleted { get; set; }
+    public override string ToString()
+    {
+        return $"[{Name}|{State}]";
+    }
 }
 
 public class EventStatus
@@ -68,6 +82,10 @@ public class Team
     {
         get { return NextEvents.OrderBy(q => q.MatchDate).FirstOrDefault(); }
     }
+    public override string ToString()
+    {
+        return $"[{Id}|{Name}]";
+    }
 }
 
 public class Logo
@@ -93,4 +111,9 @@ public class Timing
     public DateTime? LastChecked { get; set; }
     public DateTime? NextCheck { get; set; }
     public Event? Game { get; set; }
+    
+    public override string ToString()
+    {
+        return $"[{LastChecked}|{Url}]";
+    }
 }
