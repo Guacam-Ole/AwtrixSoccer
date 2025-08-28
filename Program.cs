@@ -19,7 +19,8 @@ namespace PngToJsonConverter
             services.AddLogging(cfg => cfg.SetMinimumLevel(LogLevel.Debug));
             services.AddSerilog(cfg =>
             {
-                cfg.MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                cfg.MinimumLevel.Debug()
+                    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                     .Enrich.FromLogContext()
                     .Enrich.WithProperty("job", Assembly.GetEntryAssembly().GetName().Name)
                     .Enrich.WithProperty("desktop", Environment.GetEnvironmentVariable("DESKTOP_SESSION"))
