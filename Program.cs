@@ -23,7 +23,7 @@ namespace PngToJsonConverter
                     .Enrich.WithProperty("desktop", Environment.GetEnvironmentVariable("DESKTOP_SESSION"))
                     .Enrich.WithProperty("language",Environment.GetEnvironmentVariable("LANGUAGE"))
                     .Enrich.WithProperty("lc",Environment.GetEnvironmentVariable("LC_NAME"))
-                    .WriteTo.LokiHttp("http://127.0.0.1:3100");
+                    .WriteTo.LokiHttp("http://thebeast:3100");
                 if (Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyConfigurationAttribute>()?.Configuration=="Debug")
                 {
                     cfg.WriteTo.Console(new RenderedCompactJsonFormatter());
