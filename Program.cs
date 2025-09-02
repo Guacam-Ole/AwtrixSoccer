@@ -7,7 +7,6 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
 using Serilog.Sinks.Grafana.Loki;
-using Serilog.Sinks.Loki;
 using SoccerUlanzi;
 
 namespace PngToJsonConverter
