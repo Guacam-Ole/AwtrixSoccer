@@ -68,7 +68,6 @@ public class AwTrix
         await SendApp(payload, teamId);
         await SwitchApp(teamId);
     }
-    
 
 
     public async Task DeleteApps(string? teamId)
@@ -114,6 +113,7 @@ public class AwTrix
 
         await SendApp(payload, teamId);
         await SwitchApp(teamId);
+        Thread.Sleep(TimeSpan.FromSeconds(10));
     }
 
     private string GetGameTimePayload(int minute, int maxMinutes, GamesStates gamesState)
@@ -154,9 +154,9 @@ public class AwTrix
     private static string GetTimePayload(DateTime time, int x)
     {
         var payload = string.Empty;
-        if ((time.ToLocalTime()-DateTime.Now).TotalHours < 24)
+        if ((time.ToLocalTime() - DateTime.Now).TotalHours < 24)
         {
-             payload += "{ 'dt' : [ " + x + ", 2, '" + time.ToLocalTime().ToString("HH:mm") + "', '#FFFFFF' ]}\n";
+            payload += "{ 'dt' : [ " + x + ", 2, '" + time.ToLocalTime().ToString("HH:mm") + "', '#FFFFFF' ]}\n";
         }
         else
         {
@@ -260,6 +260,7 @@ public class AwTrix
     {
         var url = GetUrl("/api/switch");
         await Rest.Post(url, "{ 'name':'soccer" + gameId + "'}");
+        _logger.LogDebug("Switched to app '{Game}'", gameId);
     }
 
     private async Task SendApp(string json, string gameId)
@@ -268,11 +269,13 @@ public class AwTrix
         var url = GetUrl(AppUrl, gameId);
         await Rest.Post(url, json);
         PreviousPayLoads[gameId] = json;
+        _logger.LogDebug("Sent App '{Game}'", gameId);
     }
 
     public async Task ChangeDelay(int newDelay)
     {
         var url = GetUrl("/api/settings");
         await Rest.Post(url, "{'ATIME' : " + newDelay + "}");
+        _logger.LogDebug("Changed delay to '{Delay}'", newDelay);
     }
 }

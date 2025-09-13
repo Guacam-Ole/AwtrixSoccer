@@ -133,7 +133,7 @@ public class Espn
                     if (nextGame?.MatchDate == null || nextGame.MatchDate < DateTime.Now ||
                         nextGame.MatchDate > nextCompetition.MatchDate)
                     {
-                        if (nextGame != timing.Game && timing.Game.MatchDate>DateTime.Now)
+                        if (nextGame != timing.Game && timing.Game.MatchDate > DateTime.Now)
                         {
                             NextGames[teamId] = timing.Game;
                             timing.NextCheck = nextCompetition.MatchDate.ToLocalTime();
@@ -160,14 +160,15 @@ public class Espn
                     timing.Game.GameState = AwTrix.GamesStates.Pause;
                     UpdateRunningGame(timing, teamId);
                     break;
-                
+
                 case "STATUS_FULLTIME":
                     timing.Game.GameState = AwTrix.GamesStates.Finished;
                     UpdateRunningGame(timing, teamId);
                     break;
 
                 default:
-                    _logger.LogWarning("Unknown status '{Status}'. Will ignore that", nextCompetition.Status.StatusType.Name);
+                    _logger.LogWarning("Unknown status '{Status}'. Will ignore that",
+                        nextCompetition.Status.StatusType.Name);
                     break;
             }
         }
@@ -208,9 +209,9 @@ public class Espn
             }
             catch (Exception e)
             {
-                _logger.LogError(e,"Cannot retrieve game url and also cannot serialize it.");
+                _logger.LogError(e, "Cannot retrieve game url and also cannot serialize it.");
             }
-            
+
             return;
         }
 
@@ -237,8 +238,8 @@ public class Espn
     {
         NextGames.TryGetValue(teamId, out var game);
         var matchDate = game?.MatchDate;
-        if (matchDate==null || game==null) return;
-        if (matchDate.Value.ToLocalTime()<DateTime.Now) return;
+        if (matchDate == null || game == null) return;
+        if (matchDate.Value.ToLocalTime() < DateTime.Now) return;
 
         if ((matchDate.Value.ToLocalTime() - DateTime.Now.ToLocalTime()).Days > 7) return;
 
@@ -286,14 +287,9 @@ public class Espn
             finishedGame.GameState = AwTrix.GamesStates.Finished;
             await ShowCurrentGame(finishedGame, teamId);
         }
-
         else if (nextGame != null)
         {
             await ShowNextGame(teamId);
-        }
-        else
-        {
-            // await _awTrix.DeleteApps(teamId);
         }
     }
 
