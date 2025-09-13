@@ -38,6 +38,10 @@ namespace PngToJsonConverter
                 {
                     cfg.WriteTo.Console(new RenderedCompactJsonFormatter());
                 }
+                else
+                {
+                    cfg.WriteTo.Console();
+                }
             });
             services.AddSingleton(JsonSerializer.Deserialize<Config>(File.ReadAllText("config.json")) ??
                                   throw new Exception("Config is missing"));
