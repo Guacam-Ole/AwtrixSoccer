@@ -9,7 +9,7 @@ public class Config
     public required string DeviceIp { get; set; } 
     public bool DemoMode { get; set; }
     public bool Uninstall { get; set; }
-    public int DisplayDelayOnGames { get; set; } = 40;
+    public int DisplayDelayOnGames { get; set; } = 10;
     public int DisplayDelayWhenOff { get; set; } = 7;
     public TimeSpan DelayOnActiveGames { get; set; } = new(0, 0, 10);
     public TimeSpan DelayWhenIdle { get; set; } = new(0, 15, 0);

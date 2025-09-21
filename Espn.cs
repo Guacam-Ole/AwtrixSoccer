@@ -39,8 +39,10 @@ public class Espn
 
     public bool AnyActiveGame()
     {
-        if (RunningGames.Count > 0) return true;
-        return NextGames.Values.Any(q => q.MatchDate.IsWithinNext(_config.DelayWhenIdle));
+        var isAnyActiveGame = RunningGames.Count > 0;
+        isAnyActiveGame |= NextGames.Values.Any(q => q.MatchDate.IsWithinNext(_config.DelayWhenIdle));
+        _logger.LogDebug("Any active game: '{ActiveGame}'", isAnyActiveGame);
+        return isAnyActiveGame;
     }
 
     public async Task GetGamesFor(string teamId)
@@ -123,7 +125,7 @@ public class Espn
                     _logger.LogInformation("Finished Game set to '{Name}'", timing.Game.Name);
                 }
 
-                timing.NextCheck = DateTime.Now.AddDays(1);
+                timing.NextCheck = DateTime.Now.AddHours(2);
                 continue;
             }
 

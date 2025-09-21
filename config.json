@@ -2,7 +2,7 @@
   "TeamIds": ["270", "137", "127"],
   "DeviceIp": "192.168.178.10",
   "Uninstall": false,
-  "DisplayDelayOnGames": 40,
+  "DisplayDelayOnGames": 10,
   "DisplayDelayWhenOff": 7,
   "DelayOnActiveGames": "00:00:10",
   "DelayWhenIdle": "00:15:00"

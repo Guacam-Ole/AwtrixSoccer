@@ -63,8 +63,9 @@ public class Looper
             foreach (var teamId in _config.TeamIds)
             {
                 await _espn.DisplayNextOrCurrentGame(teamId);
-                Thread.Sleep(_config.DelayOnActiveGames);
+                
             }
+            Thread.Sleep(_config.DelayOnActiveGames);
 
             if (!isAnyActiveGame) Thread.Sleep(_config.DelayWhenIdle);
         }
