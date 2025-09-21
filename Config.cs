@@ -5,9 +5,8 @@ namespace SoccerUlanzi;
 [SuppressMessage("ReSharper", "PropertyCanBeMadeInitOnly.Global")]
 public class Config
 {
-    public List<string> TeamIds { get; set; } = [];
+    public List<TeamConfig> Teams { get; set; } = [];
     public required string DeviceIp { get; set; } 
-    public bool DemoMode { get; set; }
     public bool Uninstall { get; set; }
     public int DisplayDelayOnGames { get; set; } = 10;
     public int DisplayDelayWhenOff { get; set; } = 7;

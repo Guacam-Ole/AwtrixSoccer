@@ -1,5 +1,18 @@
 {
-  "TeamIds": ["270", "137", "127"],
+  "Teams": [
+    {
+      "Id": "270",
+      "Name": "☠\uFE0F"
+    },
+    {
+      "Id": "137",
+      "Name": "\uD83D\uDC1F\uFE0F"
+    },
+    {
+      "Id": "127",
+      "Name": "\uD83E\uDDFF"
+    }
+  ],
   "DeviceIp": "192.168.178.10",
   "Uninstall": false,
   "DisplayDelayOnGames": 10,

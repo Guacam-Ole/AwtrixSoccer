@@ -52,7 +52,7 @@ public class AwTrix
         team.ImageContents = ConvertPngToByteArray(team.IconPath, size);
     }
 
-    public async Task ShowPreview(Team home, Team guest, DateTime time, string teamId)
+    public async Task ShowPreview(Team home, Team guest, DateTime time, TeamConfig team)
     {
         await AddByteArrayToTeam(home, 6);
         await AddByteArrayToTeam(guest, 6);
@@ -65,8 +65,8 @@ public class AwTrix
         payload += ",'hold' : true  ";
         payload += "}";
 
-        await SendApp(payload, teamId);
-        await SwitchApp(teamId);
+        await SendApp(payload, team);
+        await SwitchApp(team.Id);
     }
 
 
@@ -85,7 +85,7 @@ public class AwTrix
         Finished
     }
 
-    public async Task SendNewStandings(Team home, Team guest, int minutes, GamesStates gameState, string teamId)
+    public async Task SendNewStandings(Team home, Team guest, int minutes, GamesStates gameState, TeamConfig team)
     {
         await AddByteArrayToTeam(home, 8);
         await AddByteArrayToTeam(guest, 8);
@@ -111,8 +111,8 @@ public class AwTrix
         await DismissNotification();
         //await SendNotification(payload);
 
-        await SendApp(payload, teamId);
-        await SwitchApp(teamId);
+        await SendApp(payload, team);
+        await SwitchApp(team.Id);
         Thread.Sleep(TimeSpan.FromSeconds(10));
     }
 
@@ -256,20 +256,20 @@ public class AwTrix
     }
 
 
-    private async Task SwitchApp(string gameId)
+    private async Task SwitchApp(string teamId)
     {
         var url = GetUrl("/api/switch");
-        await Rest.Post(url, "{ 'name':'soccer" + gameId + "'}");
-        _logger.LogDebug("Switched to app '{Game}'", gameId);
+        await Rest.Post(url, "{ 'name':'soccer" + teamId + "'}");
+        _logger.LogDebug("Switched to app '{Game}'", teamId);
     }
 
-    private async Task SendApp(string json, string gameId)
+    private async Task SendApp(string json, TeamConfig team)
     {
-        if (PreviousPayLoads.TryGetValue(gameId, out var previousPayLoad) && json == previousPayLoad) return;
-        var url = GetUrl(AppUrl, gameId);
+        if (PreviousPayLoads.TryGetValue(team.Id, out var previousPayLoad) && json == previousPayLoad) return;
+        var url = GetUrl(AppUrl, team.Id);
         await Rest.Post(url, json);
-        PreviousPayLoads[gameId] = json;
-        _logger.LogDebug("Sent App '{Game}'", gameId);
+        PreviousPayLoads[team.Id] = json;
+        _logger.LogDebug("Sent App '{Game}'", team.Name);
     }
 
     public async Task ChangeDelay(int newDelay)

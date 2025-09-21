@@ -9,16 +9,14 @@ public class Looper
     private readonly Config _config;
     private readonly Espn _espn;
     private readonly AwTrix _awTrix;
-    private readonly Fake _fake;
     private int _currentDelay;
 
-    public Looper(ILogger<Looper> logger, Config config, Espn espn, AwTrix awTrix, Fake fake)
+    public Looper(ILogger<Looper> logger, Config config, Espn espn, AwTrix awTrix)
     {
         _logger = logger;
         _config = config;
         _espn = espn;
         _awTrix = awTrix;
-        _fake = fake;
     }
 
     private async Task ChangeDelay(int newDelay)
@@ -44,15 +42,11 @@ public class Looper
             return;
         }
 
-        if (_config.DemoMode)
-        {
-            await _fake.Demo();
-            return;
-        }
+  
 
         while (true)
         {
-            var requestTasks = _config.TeamIds.Select(teamId => _espn.GetGamesFor(teamId)).ToList();
+            var requestTasks = _config.Teams.Select(team => _espn.GetGamesFor(team)).ToList();
 
             Task.WaitAll(requestTasks);
 
@@ -60,9 +54,9 @@ public class Looper
 
             await ChangeDelay(isAnyActiveGame ? _config.DisplayDelayOnGames : _config.DisplayDelayWhenOff);
 
-            foreach (var teamId in _config.TeamIds)
+            foreach (var team in _config.Teams)
             {
-                await _espn.DisplayNextOrCurrentGame(teamId);
+                await _espn.DisplayNextOrCurrentGame(team);
                 
             }
             Thread.Sleep(_config.DelayOnActiveGames);

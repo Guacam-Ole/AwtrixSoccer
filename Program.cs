@@ -49,7 +49,6 @@ namespace PngToJsonConverter
             services.AddScoped<Espn>();
             services.AddScoped<Looper>();
             services.AddScoped<Espn>();
-            services.AddScoped<Fake>();
             services.AddScoped<Rest>();
             return services.BuildServiceProvider();
         }

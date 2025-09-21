@@ -45,10 +45,10 @@ public class Espn
         return isAnyActiveGame;
     }
 
-    public async Task GetGamesFor(string teamId)
+    public async Task GetGamesFor(TeamConfig team)
     {
-        if (!Timings.ContainsKey(teamId)) Timings.Add(teamId, []);
-        var teamTimings = Timings[teamId];
+        if (!Timings.ContainsKey(team.Id)) Timings.Add(team.Id, []);
+        var teamTimings = Timings[team.Id];
 
         foreach (var url in _config.LeagueUrls)
         {
@@ -68,13 +68,13 @@ public class Espn
             }
 
             existingTiming.LastChecked = DateTime.Now;
-            var teamGames = await GetNextGame($"{url}/teams/{teamId}");
+            var teamGames = await GetNextGame($"{url}/teams/{team.Id}");
             if (teamGames == null)
             {
                 existingTiming.NextCheck = DateTime.Now.AddDays(30);
                 _logger.LogInformation(
                     "Did not get any information von favorite team '{Team}' on '{Url}. Will not retry for the next 30 days.",
-                    teamId, url);
+                    team.Id, url);
                 continue;
             }
 
@@ -83,7 +83,7 @@ public class Espn
                 existingTiming.NextCheck = DateTime.Now.AddDays(1);
                 _logger.LogInformation(
                     "Did not get any Fixture von favorite team '{Team}' on '{Url}. Will not retry for the next day.",
-                    teamId, url);
+                    team.Id, url);
                 continue;
             }
 
@@ -93,23 +93,23 @@ public class Espn
             existingTiming.Game = teamGames.NextEvent;
         }
 
-        AnalyzeFixtures(teamId);
+        AnalyzeFixtures(team);
     }
 
-    private void AnalyzeFixtures(string teamId)
+    private void AnalyzeFixtures(TeamConfig team)
     {
-        if (RunningGames.TryGetValue(teamId, out var runningGame))
+        if (RunningGames.TryGetValue(team.Id, out var runningGame))
         {
             if (runningGame.MatchDate != null && runningGame.MatchDate.Value.ToLocalTime() < DateTime.Now.AddHours(-4))
             {
-                _logger.LogInformation("Running game '{Name}' removed", runningGame.Name);
-                RunningGames.Remove(teamId);
+                _logger.LogInformation("Running game '{Name}' for '{Team}' removed", runningGame.Name, team.Name);
+                RunningGames.Remove(team.Id);
             }
         }
 
-        if (!Timings.TryGetValue(teamId, out var teamTiming)) return;
-        FinishedGames.TryGetValue(teamId, out var finishedGame);
-        NextGames.TryGetValue(teamId, out var nextGame);
+        if (!Timings.TryGetValue(team.Id, out var teamTiming)) return;
+        FinishedGames.TryGetValue(team.Id, out var finishedGame);
+        NextGames.TryGetValue(team.Id, out var nextGame);
 
         foreach (var timing in teamTiming.Where(q => q.Game != null))
         {
@@ -121,8 +121,8 @@ public class Espn
             {
                 if (finishedGame?.MatchDate == null || finishedGame.MatchDate < nextCompetition.MatchDate)
                 {
-                    FinishedGames[teamId] = timing.Game;
-                    _logger.LogInformation("Finished Game set to '{Name}'", timing.Game.Name);
+                    FinishedGames[team.Id] = timing.Game;
+                    _logger.LogInformation("Finished Game for '{Team}' set to '{Name}'", team.Name, timing.Game.Name);
                 }
 
                 timing.NextCheck = DateTime.Now.AddHours(2);
@@ -137,9 +137,9 @@ public class Espn
                     {
                         if (nextGame != timing.Game && timing.Game.MatchDate > DateTime.Now)
                         {
-                            NextGames[teamId] = timing.Game;
+                            NextGames[team.Id] = timing.Game;
                             timing.NextCheck = nextCompetition.MatchDate.ToLocalTime();
-                            _logger.LogInformation("Next Game set to '{Name}'", timing.Game.Name);
+                            _logger.LogInformation("Next Game for '{Team}' set to '{Name}'", team.Name, timing.Game.Name);
                         }
                     }
 
@@ -147,12 +147,12 @@ public class Espn
                 case "STATUS_FIRST_HALF":
                 case "STATUS_SECOND_HALF":
                     timing.Game.GameState = AwTrix.GamesStates.Playing;
-                    UpdateRunningGame(timing, teamId);
+                    UpdateRunningGame(timing, team);
                     break;
                 case "STATUS_OVERTIME":
                 case "STATUS_SHOOTOUT":
                     timing.Game.GameState = AwTrix.GamesStates.OverTime;
-                    UpdateRunningGame(timing, teamId);
+                    UpdateRunningGame(timing, team);
                     break;
 
                 case "STATUS_HALFTIME":
@@ -160,39 +160,39 @@ public class Espn
                 case "STATUS_HALFTIME_ET":
                 case "STATUS_END_OF_EXTRATIME":
                     timing.Game.GameState = AwTrix.GamesStates.Pause;
-                    UpdateRunningGame(timing, teamId);
+                    UpdateRunningGame(timing, team);
                     break;
 
                 case "STATUS_FULLTIME":
                     timing.Game.GameState = AwTrix.GamesStates.Finished;
-                    UpdateRunningGame(timing, teamId);
+                    UpdateRunningGame(timing, team);
                     break;
 
                 default:
-                    _logger.LogWarning("Unknown status '{Status}'. Will ignore that",
-                        nextCompetition.Status.StatusType.Name);
+                    _logger.LogWarning("Unknown status '{Status}' for '{Team}' . Will ignore that",
+                        nextCompetition.Status.StatusType.Name, team.Name);
                     break;
             }
         }
     }
 
-    private void UpdateRunningGame(Timing timing, string teamId)
+    private void UpdateRunningGame(Timing timing, TeamConfig team)
     {
-        RunningGames.TryGetValue(teamId, out var runningGame);
+        RunningGames.TryGetValue(team.Id, out var runningGame);
 
         if (runningGame != timing.Game && timing.Game != null)
         {
             runningGame = timing.Game;
-            RunningGames[teamId] = runningGame;
-            _logger.LogInformation("Current Game set to '{Name}'", timing.Game.Name);
+            RunningGames[team.Id] = runningGame;
+            _logger.LogInformation("Current Game for '{Team}' set to '{Name}'",team.Name, timing.Game.Name);
         }
 
         timing.NextCheck = DateTime.Now.AddSeconds(4);
     }
 
-    private async Task ShowCurrentGame(Event game, string teamId)
+    private async Task ShowCurrentGame(Event game, TeamConfig team)
     {
-        Timings.TryGetValue(teamId, out var teamTimings);
+        Timings.TryGetValue(team.Id, out var teamTimings);
         var timing = teamTimings?.FirstOrDefault(q => q.Game == game);
         if (timing == null) return;
 
@@ -207,7 +207,7 @@ public class Espn
             try
             {
                 var gameOutPut = JsonSerializer.Serialize(game);
-                _logger.LogWarning("Cannot retrieve game url. Links are: '{Links}'", gameOutPut);
+                _logger.LogWarning("Cannot retrieve game url for '{Team}'. Links are: '{Links}'", team.Name, gameOutPut);
             }
             catch (Exception e)
             {
@@ -232,13 +232,13 @@ public class Espn
             IconUrl = guestCompetitor.Team.Logos?.FirstOrDefault()?.Href
         };
 
-        await _awTrix.SendNewStandings(homeTeam, guestTeam, competition.Status.Minutes, game.GameState, teamId);
+        await _awTrix.SendNewStandings(homeTeam, guestTeam, competition.Status.Minutes, game.GameState, team);
     }
 
 
-    private async Task ShowNextGame(string teamId)
+    private async Task ShowNextGame(TeamConfig team)
     {
-        NextGames.TryGetValue(teamId, out var game);
+        NextGames.TryGetValue(team.Id, out var game);
         var matchDate = game?.MatchDate;
         if (matchDate == null || game == null) return;
         if (matchDate.Value.ToLocalTime() < DateTime.Now) return;
@@ -259,19 +259,19 @@ public class Espn
             IconUrl = guestCompetitor.Team.Logos?.FirstOrDefault()?.Href,
             IconPath = $"./cache/{guestCompetitor.Team.Id}.6x6.png"
         };
-        await _awTrix.ShowPreview(home, guest, matchDate.Value, teamId);
+        await _awTrix.ShowPreview(home, guest, matchDate.Value, team);
     }
 
-    public async Task DisplayNextOrCurrentGame(string teamId)
+    public async Task DisplayNextOrCurrentGame(TeamConfig team)
     {
-        FinishedGames.TryGetValue(teamId, out var finishedGame);
-        RunningGames.TryGetValue(teamId, out var runningGame);
-        NextGames.TryGetValue(teamId, out var nextGame);
+        FinishedGames.TryGetValue(team.Id, out var finishedGame);
+        RunningGames.TryGetValue(team.Id, out var runningGame);
+        NextGames.TryGetValue(team.Id, out var nextGame);
 
         if (finishedGame?.MatchDate != null && finishedGame.MatchDate.Value.ToLocalTime() < DateTime.Now.AddHours(-12))
         {
             finishedGame = null;
-            FinishedGames.Remove(teamId);
+            FinishedGames.Remove(team.Id);
         }
 
 
@@ -279,19 +279,19 @@ public class Espn
         {
             if (finishedGame?.Id == runningGame.Id)
             {
-                RunningGames.Remove(teamId);
+                RunningGames.Remove(team.Id);
             }
 
-            await ShowCurrentGame(runningGame, teamId);
+            await ShowCurrentGame(runningGame, team);
         }
         else if (finishedGame != null)
         {
             finishedGame.GameState = AwTrix.GamesStates.Finished;
-            await ShowCurrentGame(finishedGame, teamId);
+            await ShowCurrentGame(finishedGame, team);
         }
         else if (nextGame != null)
         {
-            await ShowNextGame(teamId);
+            await ShowNextGame(team);
         }
     }
 
