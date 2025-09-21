@@ -73,8 +73,8 @@ public class Espn
             {
                 existingTiming.NextCheck = DateTime.Now.AddDays(30);
                 _logger.LogInformation(
-                    "Did not get any information von favorite team '{Team}' on '{Url}. Will not retry for the next 30 days.",
-                    team.Id, url);
+                    "Did not get any information from favorite team '{Team}' on '{Url}. Will not retry for the next 30 days.",
+                    team.Name, url);
                 continue;
             }
 
@@ -82,8 +82,8 @@ public class Espn
             {
                 existingTiming.NextCheck = DateTime.Now.AddDays(1);
                 _logger.LogInformation(
-                    "Did not get any Fixture von favorite team '{Team}' on '{Url}. Will not retry for the next day.",
-                    team.Id, url);
+                    "Did not get any Fixture from favorite team '{Team}' on '{Url}. Will not retry for the next day.",
+                    team.Name, url);
                 continue;
             }
 
