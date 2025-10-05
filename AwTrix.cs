@@ -77,14 +77,11 @@ public class Display
     {
         var url = GetUrl(AppUrl, teamId);
         await Rest.Post(url, string.Empty);
-        _logger.LogInformation("App for '{App}' removed", teamId);
     }
 
     public enum GamesStates
     {
         Playing,
-        // Pause,
-        // OverTime,
         Finished
     }
 
@@ -121,18 +118,16 @@ public class Display
         Thread.Sleep(TimeSpan.FromSeconds(10));
     }
 
-    private string GetGameTimePayload(int minute, int maxMinutes, GamesStates gamesState)
+    private static string GetGameTimePayload(int minute, int maxMinutes, GamesStates gamesState)
     {
         var color = gamesState switch
         {
             GamesStates.Finished => "#000000",
-            // GamesStates.OverTime => "#FF0000",
-            // GamesStates.Pause => "#CCCC00",
             GamesStates.Playing => "#AAAAAA",
             _ => "#000000"
         };
 
-        string payload = "";
+        var payload = "";
         var position = 26 * minute / maxMinutes;
         if (position > 26)
         {
@@ -171,7 +166,7 @@ public class Display
         return payload;
     }
 
-    private string GetGoalPayload(Team team, int x, bool left)
+    private static string GetGoalPayload(Team team, int x, bool left)
     {
         var lowerDigitPos = x;
         if (left || team.Goals > 9) lowerDigitPos += 2;
@@ -282,6 +277,5 @@ public class Display
     {
         var url = GetUrl("/api/settings");
         await Rest.Post(url, "{'ATIME' : " + newDelay + "}");
-        _logger.LogDebug("Changed delay to '{Delay}'", newDelay);
     }
 }

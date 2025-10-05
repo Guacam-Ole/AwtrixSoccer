@@ -77,8 +77,6 @@ public class Collector
                 _logger.LogDebug("'{Team}' has no upcoming matches", teamData.Details.Name);
                 await RemoveGameFromDisplay(teamData);
             }
-
-         //   await DisplayTeam(teamData);
         }
         await _display.ChangeDelay(delay);
     }
@@ -114,7 +112,7 @@ public class Collector
         var (minute, goals) = await _fotMob.GetMatchData(team.Overview.LastMatch.Url);
 
         var homeTeam = GetDisplayTeam(team.Overview.LastMatch.Home, goals[0]);
-        var awayTeam = GetDisplayTeam(team.Overview.LastMatch.Guest, goals[0]);
+        var awayTeam = GetDisplayTeam(team.Overview.LastMatch.Guest, goals[1]);
 
         await _display.SendNewStandings(homeTeam, awayTeam, (int)minute, Display.GamesStates.Finished,
             new TeamConfig { Id = team.Details.Id.ToString(), Name = team.Details.Name });
@@ -135,7 +133,7 @@ public class Collector
         var (minute, goals) = await _fotMob.GetMatchData(team.Overview.NextMatch.Url);
 
         var homeTeam = GetDisplayTeam(team.Overview.NextMatch.Home, goals[0]);
-        var awayTeam = GetDisplayTeam(team.Overview.NextMatch.Guest, goals[0]);
+        var awayTeam = GetDisplayTeam(team.Overview.NextMatch.Guest, goals[1]);
 
         await _display.SendNewStandings(homeTeam, awayTeam, (int)minute, Display.GamesStates.Playing,
             new TeamConfig { Id = team.Details.Id.ToString(), Name = team.Details.Name });
