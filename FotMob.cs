@@ -90,10 +90,11 @@ public class FotMob
 
             var time = 0d;
             if (momentum?.Count > 0) time = momentum.Max(mo => mo.Minute);
-            var goalEvents = events?.Where(ev => ev.EventType == "Goal");
+            var goalEvents = events?.Where(ev => ev.EventType == "Goal").ToList();
 
-            var score = goalEvents?.MaxBy(ev => ev.Minute)?.Score ?? [0, 0];
-            return (time, score);
+            if (goalEvents == null) return (time, [0, 0]);
+            var score = goalEvents.MaxBy(ev => ev.Minute)?.Score ?? [0, 0];
+            return goalEvents.Any(ev => ev is { EventType: "Half", Minute: >= 90 }) ? (90, [-1, -1]) : (time, score);
         }
         catch (Exception ex)
         {

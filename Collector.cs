@@ -51,7 +51,13 @@ public class Collector
                 delay = _config.DisplayDelayOnGames;
                 _nextRequestDates[team.Id] = DateTime.Now.AddMinutes(1);
                 _logger.LogDebug("'{Team}' has an active match", teamData.Details.Name);
-                await DisplayRunningGame(teamData);
+                var stillRunning= await DisplayRunningGame(teamData);
+                if (stillRunning) continue;
+                
+                // Finished, but properties not yet updated
+                _nextRequestDates[team.Id] = teamData.Overview.LastMatch.LocalTime.AddHours(1);
+                _logger.LogDebug("'{Team}'s game is finished", teamData.Details.Name);
+                await DisplayPreviousGame(teamData, false);
             }
             else if (teamData.Overview.LastMatch != null &&
                      teamData.Overview.LastMatch.LocalTime > DateTime.Now.AddDays(-1))
@@ -107,12 +113,12 @@ public class Collector
             });
     }
 
-    private async Task DisplayPreviousGame(Team team)
+    private async Task DisplayPreviousGame(Team team, bool lastMatch=true)
     {
         var (minute, goals) = await _fotMob.GetMatchData(team.Overview.LastMatch.Url);
 
-        var homeTeam = GetDisplayTeam(team.Overview.LastMatch.Home, goals[0]);
-        var awayTeam = GetDisplayTeam(team.Overview.LastMatch.Guest, goals[1]);
+        var homeTeam = GetDisplayTeam(lastMatch? team.Overview.LastMatch.Home:team.Overview.NextMatch!.Home, goals[0]);
+        var awayTeam = GetDisplayTeam(lastMatch? team.Overview.LastMatch.Guest:team.Overview.NextMatch!.Guest, goals[1]);
 
         await _display.SendNewStandings(homeTeam, awayTeam, (int)minute, Display.GamesStates.Finished,
             new TeamConfig { Id = team.Details.Id.ToString(), Name = team.Details.Name });
@@ -128,14 +134,16 @@ public class Collector
         };
     }
 
-    private async Task DisplayRunningGame(Team team)
+    private async Task<bool> DisplayRunningGame(Team team)
     {
         var (minute, goals) = await _fotMob.GetMatchData(team.Overview.NextMatch.Url);
+        if (goals[0] == -1) return false; // not running anymore
 
         var homeTeam = GetDisplayTeam(team.Overview.NextMatch.Home, goals[0]);
         var awayTeam = GetDisplayTeam(team.Overview.NextMatch.Guest, goals[1]);
 
         await _display.SendNewStandings(homeTeam, awayTeam, (int)minute, Display.GamesStates.Playing,
             new TeamConfig { Id = team.Details.Id.ToString(), Name = team.Details.Name });
+        return true;
     }
 }
