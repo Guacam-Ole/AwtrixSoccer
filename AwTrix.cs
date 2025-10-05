@@ -65,7 +65,10 @@ public class Display
         payload += ",'hold' : true  ";
         payload += "}";
 
-        await SendApp(payload, team);
+        if (await SendApp(payload, team))
+        {
+            _logger.LogInformation("Updated preview for  '{Team}' on '{Time}' ", team.Name, time);
+        }
         await SwitchApp(team.Id);
     }
 
@@ -109,9 +112,11 @@ public class Display
         payload += "}";
 
         await DismissNotification();
-        //await SendNotification(payload);
 
-        await SendApp(payload, team);
+        if (await SendApp(payload, team))
+        {
+            _logger.LogInformation("Updated '{Team}' {HomeScore} : {GuestScore} ({Time} minutes)", team.Name, home.Goals, guest.Goals, minutes);
+        }
         await SwitchApp(team.Id);
         Thread.Sleep(TimeSpan.FromSeconds(10));
     }
@@ -263,13 +268,14 @@ public class Display
         _logger.LogDebug("Switched to app '{Game}'", teamId);
     }
 
-    private async Task SendApp(string json, TeamConfig team)
+    private async Task<bool> SendApp(string json, TeamConfig team)
     {
-        if (PreviousPayLoads.TryGetValue(team.Id, out var previousPayLoad) && json == previousPayLoad) return;
+        if (PreviousPayLoads.TryGetValue(team.Id, out var previousPayLoad) && json == previousPayLoad) return false;
         var url = GetUrl(AppUrl, team.Id);
         await Rest.Post(url, json);
         PreviousPayLoads[team.Id] = json;
         _logger.LogDebug("Sent App '{Game}'", team.Name);
+        return true;
     }
 
     public async Task ChangeDelay(int newDelay)
