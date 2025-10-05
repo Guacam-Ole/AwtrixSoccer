@@ -1,3 +1,5 @@
+__This is the old "ESPN"-Version. ESPN changed their html so it did not work anymore. As the main branch switched to FotMob instead this is just here fore historical purpouses__
+
 # SoccerUlanzi
 
 A tool that displays live soccer scores on external devices such as the **Ulanzi TC001** or any device with **AwTrix3** installed.
