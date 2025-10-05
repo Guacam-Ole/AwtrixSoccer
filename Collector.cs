@@ -46,7 +46,7 @@ public class Collector
                 continue;
             }
 
-            if (teamData.Overview.ActiveMatch)
+            if (teamData.Overview.ActiveMatch || teamData.Overview.NextMatch?.LocalTime<DateTime.Now)
             {
                 delay = _config.DisplayDelayOnGames;
                 _nextRequestDates[team.Id] = DateTime.Now.AddMinutes(1);
@@ -85,6 +85,7 @@ public class Collector
 
     private void SleepUntil(DateTime until)
     {
+        if (until <= DateTime.Now) until = DateTime.Now.AddMinutes(1);
         var difference = until.Subtract(DateTime.Now);
         _logger.LogDebug("Sleeping until '{Until}'", until);
         Thread.Sleep(difference);
