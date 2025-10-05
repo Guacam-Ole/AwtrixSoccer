@@ -8,6 +8,7 @@ using Serilog.Events;
 using Serilog.Formatting.Compact;
 using Serilog.Sinks.Grafana.Loki;
 using SoccerUlanzi;
+using SoccerUlanzi.AwTrix;
 
 namespace PngToJsonConverter
 {
@@ -45,11 +46,11 @@ namespace PngToJsonConverter
             });
             services.AddSingleton(JsonSerializer.Deserialize<Config>(File.ReadAllText("config.json")) ??
                                   throw new Exception("Config is missing"));
-            services.AddScoped<AwTrix>();
-            services.AddScoped<Espn>();
+            services.AddScoped<Display>();
             services.AddScoped<Looper>();
-            services.AddScoped<Espn>();
+            services.AddScoped<Collector>();
             services.AddScoped<Rest>();
+            services.AddScoped<FotMob>();
             return services.BuildServiceProvider();
         }
 

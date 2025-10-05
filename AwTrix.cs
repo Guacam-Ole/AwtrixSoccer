@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
 
-namespace SoccerUlanzi;
+namespace SoccerUlanzi.AwTrix;
 
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -17,11 +17,11 @@ public class Team
     public int[]? ImageContents { get; set; }
 }
 
-public class AwTrix
+public class Display
 {
     private static readonly Dictionary<string, string> PreviousPayLoads = new();
     private readonly Config _config;
-    private readonly ILogger<AwTrix> _logger;
+    private readonly ILogger<Display> _logger;
     private readonly Rest _rest;
 
     private readonly JsonSerializerOptions _serializerOptions = new()
@@ -34,7 +34,7 @@ public class AwTrix
     private const string NotifyUrl = "/api/notify";
 
 
-    public AwTrix(Config config, ILogger<AwTrix> logger, Rest rest)
+    public Display(Config config, ILogger<Display> logger, Rest rest)
     {
         _config = config;
         _logger = logger;
@@ -80,8 +80,8 @@ public class AwTrix
     public enum GamesStates
     {
         Playing,
-        Pause,
-        OverTime,
+        // Pause,
+        // OverTime,
         Finished
     }
 
@@ -121,8 +121,8 @@ public class AwTrix
         var color = gamesState switch
         {
             GamesStates.Finished => "#000000",
-            GamesStates.OverTime => "#FF0000",
-            GamesStates.Pause => "#CCCC00",
+            // GamesStates.OverTime => "#FF0000",
+            // GamesStates.Pause => "#CCCC00",
             GamesStates.Playing => "#AAAAAA",
             _ => "#000000"
         };

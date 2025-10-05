@@ -29,21 +29,9 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
       <None Remove="cache\127.png" />
-      <Content Include="cache\127.png">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
       <None Remove="cache\127.6x6.png" />
-      <Content Include="cache\127.6x6.png">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
       <None Remove="cache\270.png" />
-      <Content Include="cache\270.png">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
       <None Remove="cache\270.6x6.png" />
-      <Content Include="cache\270.6x6.png">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
     </ItemGroup>
 
 </Project>
